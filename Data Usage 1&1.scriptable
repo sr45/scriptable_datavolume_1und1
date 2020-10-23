@@ -1,7 +1,11 @@
 //Get data usage status off 1&1 mobile
+//inspiered by "Corona-Ampel Berlin | www.berlin.de"
+//
+//author: sr45
 
 let widget = new ListWidget()
 widget.setPadding(16, 16, 16, 16)
+
 let nextRefresh = Date.now() + 1000*30 // add 30 second to now
 widget.refreshAfterDate = new Date(nextRefresh)
 
