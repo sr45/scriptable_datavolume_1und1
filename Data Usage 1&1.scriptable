@@ -76,77 +76,67 @@ async function loadSite() {
       tx2.font = vlFnt
       tx2.textColor = Color.red()
   } else {
-  //javasript to grab data from the website
-  let jsc = `
-  var arr = new Array()
-  
-  var used = document
-    .getElementById("currentHighSpeedVolumeCount")
-    .innerText
-  arr.push(used)
-  
-  var volume = document
-    .getElementById("maxHighSpeedVolumeCount")
-    .innerText
-  arr.push(volume)
-  
-  JSON.stringify(arr)
-  `
-  //Run the javascript
-  let jsn = await wbv.evaluateJavaScript(jsc)
-  //Parse the grabbed values into a variable
-  let val = JSON.parse(jsn)
-  //Assign the parts to single variables
-  var usedvolume = val[0].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
-  let maxvolume = val[1].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
-  
-  //Turn the html's grabbed RGB color values into HEX values
-  let cc1 = Color.white()
-  let cc2 = Color.white()
-  
-  //Function to do the RGB to HEX stuff
-  function toHEX(col) {
-    var a = col.split("(")[1].split(")")[0].replaceAll(" ", "")
-    a = a.split(",")
-    var b = a.map(function(x) {
-    x = parseInt(x).toString(16)
-    return (x.length==1) ? "0"+x : x
-    })
-    b = "0x"+b.join("")
-    b = b.substring(2)
-    return b
+    //javasript to grab data from the 1&1 website (mobile-center)
+    let jsc = `
+        var arr = new Array()
+        
+        var used = document
+          .getElementById("currentHighSpeedVolumeCount")
+          .innerText
+        arr.push(used)
+        
+        var volume = document
+          .getElementById("maxHighSpeedVolumeCount")
+          .innerText
+        arr.push(volume)
+        
+        JSON.stringify(arr)
+    `
+    //Run the javascript
+    let jsn = await wbv.evaluateJavaScript(jsc)
+    //Parse the grabbed values into a variable
+    let val = JSON.parse(jsn)
+    //Remove everything not needed from the tag content
+    var usedvolume = val[0].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
+    let maxvolume = val[1].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
+    
+    let cc1 = Color.white()
+    let cc2 = Color.white()
+    
+    //Benutztes Volumen
+    if (usedvolume != null) {
+      let tx2 = widget.addText(usedvolume+ " MB")
+        tx2.leftAlignText()
+        tx2.font = vlFnt
+        tx2.textColor = cc1
+    }
+    
+    let tx1 = widget.addText("Verbraucht")
+    tx1.textColor = ptCol
+    tx1.font= ptFnt
+    tx1.leftAlignText()
+    widget.addSpacer(spc)
+    
+    //Verfügbares Volumen
+    if (maxvolume != null) {
+      let tx4 = widget.addText(maxvolume+" MB")
+        tx4.leftAlignText()
+        tx4.font = vlFnt
+        tx4.textColor = cc2
+    }
+    
+    let tx3 = widget.addText("Monatliches Volumen")
+    tx3.textColor = ptCol
+    tx3.font= ptFnt
+    tx3.leftAlignText()
   }
-  
-  //Benutztes Volumen
-  if (usedvolume != null) {
-    let tx2 = widget.addText(usedvolume+ " MB")
-      tx2.leftAlignText()
-      tx2.font = vlFnt
-      tx2.textColor = cc1
-  }
-  
-  let tx1 = widget.addText("Verbraucht")
-  tx1.textColor = ptCol
-  tx1.font= ptFnt
-  tx1.leftAlignText()
-  widget.addSpacer(spc)
-  
-  //Verfügbares Volumen
-  if (maxvolume != null) {
-    let tx4 = widget.addText(maxvolume+" MB")
-      tx4.leftAlignText()
-      tx4.font = vlFnt
-      tx4.textColor = cc2
-  }
-  
-  let tx3 = widget.addText("Monatliches Volumen")
-  tx3.textColor = ptCol
-  tx3.font= ptFnt
-  tx3.leftAlignText()
-}
 }
   
-  function logMessage(theMessage){
+  
+// Writing log messages to icloud file
+// Only used for debugging
+// The file has no limit for filesize!
+function logMessage(theMessage){
 	let oldData = ""
 	let logManager = FileManager.iCloud()
 	const logPath = logManager.joinPath(logManager.documentsDirectory(), "refreshlogDataVolume.txt")
