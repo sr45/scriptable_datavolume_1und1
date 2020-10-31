@@ -58,20 +58,23 @@ async function loadSite() {
   let wbv = new WebView()
   await wbv.loadURL(url)
   
+  //Check url wich is set if WLAN is turned of
   let js = `
-     var arr = new Array()
-     if (document.URL == "https://www.1und1.de/mobile-center-no-umts") {
-      arr.push("true")
-    } else {
+    var arr = new Array()
+    
+    if (document.URL == "https://mobile.kundenshop.1und1.de/mobile-center") {
       arr.push("false")
+    } else {
+      arr.push("true")
     }
+      
     JSON.stringify(arr)
   `
-  
-   let res = await wbv.evaluateJavaScript(js)
+  let res = await wbv.evaluateJavaScript(js)
   let wlan = JSON.parse(res)
+  
   if (wlan[0]=="true") {
-     let tx2 = widget.addText("Im WLAN nicht möglich!")
+      let tx2 = widget.addText("Im WLAN nicht möglich!")
       tx2.leftAlignText()
       tx2.font = vlFnt
       tx2.textColor = Color.red()
