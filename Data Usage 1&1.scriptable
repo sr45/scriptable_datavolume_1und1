@@ -3,14 +3,18 @@
 //
 //author: sr45
 
+var usedvolume = 0
+var maxvolume = 0
+
+let cc1 = Color.white()
+let cc2 = Color.white()
 let widget = new ListWidget()
-widget.setPadding(16, 16, 16, 16)
-
 let nextRefresh = Date.now() + 1000*30 // add 30 second to now
-widget.refreshAfterDate = new Date(nextRefresh)
-
 const spc = 3
 let hourNow = new Date().getHours()
+
+widget.setPadding(16, 16, 16, 16)
+widget.refreshAfterDate = new Date(nextRefresh)
 
 //Define nighttime (19h - 7h) for styling changes
 var nightTime = (hourNow >= 19 || hourNow < 7)
@@ -23,7 +27,7 @@ widget.addSpacer(spc)
 widget.addSpacer(spc)
 
 //Value text
-let vlFnt = Font.semiboldSystemFont(24)
+let vlFnt = Font.semiboldSystemFont(13)
 
 //Subtitle text
 let ptFnt = Font.systemFont(10)
@@ -31,125 +35,133 @@ let ptCol
 
 //Backgrund- & text colors
 if (nightTime) {
-  titleTxt.textColor = Color.lightGray()
-  ptCol = Color.gray()
-  const gradient = new LinearGradient()
-  gradient.locations = [0, 1]
-  gradient.colors = [
-    new Color("192331"),
-    new Color("222222")
-  ]
-  widget.backgroundGradient = gradient
+ titleTxt.textColor = Color.lightGray()
+ ptCol = Color.gray()
+ const gradient = new LinearGradient()
+ gradient.locations = [0, 1]
+ gradient.colors = [
+   new Color("192331"),
+   new Color("222222")]
+ widget.backgroundGradient = gradient
 }
 else {
-  titleTxt.textColor = Color.darkGray()
-  ptCol = Color.darkGray()
+ titleTxt.textColor = Color.darkGray()
+ ptCol = Color.darkGray()
+}
+await loadSite()
+if (!config.runsInWidget) {
+ widget.presentSmall() 
 }
 
-await loadSite()
-
-if (!config.runsInWidget) widget.presentSmall()
 Script.setWidget(widget)
 Script.complete()
 
+function readData() {
+   let logManager = FileManager.iCloud()
+   const logPath = logManager.joinPath(logManager.documentsDirectory(), "1und1data.txt")
+   logManager.downloadFileFromiCloud(logPath)
+   if (!logManager.fileExists(logPath)){
+       writeData()
+   }
+   var filecontent = logManager.readString(logPath)
+   data = filecontent.split(",")
+   usedvolume = data[0]
+   maxvolume = data[1]
+}
+
+function writeData() {
+   let logManager = FileManager.iCloud()
+   const logPath = logManager.joinPath(logManager.documentsDirectory(), "1und1data.txt")
+   logManager.downloadFileFromiCloud(logPath)
+   logManager.writeString(logPath, "" + usedvolume + "," + maxvolume)
+}
+
 async function loadSite() {
-  //logMessage("refresh")
-  let url='https://www.1und1.de/mobile-center'
-  let wbv = new WebView()
-  await wbv.loadURL(url)
-  
-  //Check url wich is set if WLAN is turned of
-  let js = `
-    var arr = new Array()
-    
-    if (document.URL == "https://mobile.kundenshop.1und1.de/mobile-center") {
-      arr.push("false")
-    } else {
-      arr.push("true")
-    }
-      
-    JSON.stringify(arr)
-  `
-  let res = await wbv.evaluateJavaScript(js)
-  let wlan = JSON.parse(res)
-  
-  if (wlan[0]=="true") {
-      let tx2 = widget.addText("Im WLAN nicht möglich!")
-      tx2.leftAlignText()
-      tx2.font = vlFnt
-      tx2.textColor = Color.red()
+ 
+ let url='https://www.1und1.de/mobile-center'
+ let wbv = new WebView()
+ await wbv.loadURL(url)
+
+ //Check url wich is set if WLAN is turned of
+ let js = `
+   var arr = new Array()
+
+   if (document.URL == "https://mobile.kundenshop.1und1.de/mobile-center") {
+     arr.push("false")
+   } else {
+     arr.push("true")
+   }
+
+   JSON.stringify(arr)
+ `
+ let res = await wbv.evaluateJavaScript(js)
+ let wlan = JSON.parse(res)
+
+
+ if (wlan[0]=="true") {
+    readData()
   } else {
     //javasript to grab data from the 1&1 website (mobile-center)
     let jsc = `
-        var arr = new Array()
-        
-        var used = document
-          .getElementById("currentHighSpeedVolumeCount")
-          .innerText
-        arr.push(used)
-        
-        var volume = document
-          .getElementById("maxHighSpeedVolumeCount")
-          .innerText
-        arr.push(volume)
-        
-        JSON.stringify(arr)
-    `
-    //Run the javascript
-    let jsn = await wbv.evaluateJavaScript(jsc)
-    //Parse the grabbed values into a variable
-    let val = JSON.parse(jsn)
-    //Remove everything not needed from the tag content
-    var usedvolume = val[0].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
-    let maxvolume = val[1].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
-    
-    let cc1 = Color.white()
-    let cc2 = Color.white()
-    
-    //Benutztes Volumen
-    if (usedvolume != null) {
-      let tx2 = widget.addText(usedvolume+ " MB")
-        tx2.leftAlignText()
-        tx2.font = vlFnt
-        tx2.textColor = cc1
-    }
-    
-    let tx1 = widget.addText("Verbraucht")
-    tx1.textColor = ptCol
-    tx1.font= ptFnt
-    tx1.leftAlignText()
+       var arr = new Array()
+
+       var used = document
+         .getElementById("currentHighSpeedVolumeCount")
+         .innerText
+       arr.push(used)
+
+       var volume = document
+         .getElementById("maxHighSpeedVolumeCount")
+         .innerText
+       arr.push(volume)
+
+       JSON.stringify(arr)
+   `
+   //Run the javascript
+   let jsn = await wbv.evaluateJavaScript(jsc)
+   //Parse the grabbed values into a variable
+   let val = JSON.parse(jsn) 
+   //Remove everything not needed from the tag content
+   usedvolume = val[0].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
+   maxvolume = val[1].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
+   writeData()
+ }
+
+ if (wlan[0]=="true") {
+     let tx5 = widget.addText("Nicht aktuell im WLAN!")
+     tx5.centerAlignText()
+     tx5.font = vlFnt
+     tx5.textColor = Color.red()
     widget.addSpacer(spc)
-    
-    //Verfügbares Volumen
-    if (maxvolume != null) {
-      let tx4 = widget.addText(maxvolume+" MB")
-        tx4.leftAlignText()
-        tx4.font = vlFnt
-        tx4.textColor = cc2
-    }
-    
-    let tx3 = widget.addText("Monatliches Volumen")
-    tx3.textColor = ptCol
-    tx3.font= ptFnt
-    tx3.leftAlignText()
   }
-}
+   //Benutztes Volumen
+     tx2 = widget.addText(usedvolume + " MB")
+     tx2.leftAlignText()
+     tx2.font = vlFnt
+     tx2.textColor = ptCol
   
+
+  let tx1 = widget.addText("Verbraucht")
   
-// Writing log messages to icloud file
-// Only used for debugging
-// The file has no limit for filesize!
-function logMessage(theMessage){
-	let oldData = ""
-	let logManager = FileManager.iCloud()
-	const logPath = logManager.joinPath(logManager.documentsDirectory(), "refreshlogDataVolume.txt")
-	if (logManager.fileExists(logPath)){
-		oldData = logManager.readString(logPath)+"\n"
-	}
-	let logTime = new Date()
-	
-	oldData += Script.name() + " : " + logTime.toLocaleDateString('en-US') + " " +logTime.toLocaleTimeString('en-US') + " : "+theMessage
-	logManager.writeString(logPath,oldData)
-	
-	return logTime.toLocaleTimeString('en-US')
+  if (maxvolume - usedvolume < 300) {
+    tx1.textColor = Color.red() 
+  } else {
+    tx1.textColor = ptCol
+  } 
+  tx1.font= ptFnt
+  tx1.leftAlignText()
+  
+  widget.addSpacer(spc)
+
+   //Verfügbares Volumen
+     tx4 = widget.addText(maxvolume + " MB")
+     tx4.leftAlignText()
+     tx4.font = vlFnt
+     tx4.textColor = ptCol
+  
+
+  let tx3 = widget.addText("Monatliches Volumen")
+  tx3.textColor  = ptCol
+  tx3.font= ptFnt
+  tx3.leftAlignText()
 }
