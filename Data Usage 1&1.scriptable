@@ -5,6 +5,7 @@
 
 var usedvolume = 0
 var maxvolume = 0
+var lastdate = ""
 
 let cc1 = Color.white()
 let cc2 = Color.white()
@@ -78,7 +79,7 @@ function readData() {
 
 function writeData() {
   var d = new Date,
-    dformat = [d.getMonth()+1,
+    lastdate = [d.getMonth()+1,
                d.getDate(),
                d.getFullYear()].join('/')+' '+
               [d.getHours(),
@@ -88,7 +89,7 @@ function writeData() {
    let logManager = FileManager.iCloud()
    const logPath = logManager.joinPath(logManager.documentsDirectory(), "1und1data.txt")
    logManager.downloadFileFromiCloud(logPath)
-   logManager.writeString(logPath, "" + usedvolume + "," + maxvolume + "," + dformat)
+   logManager.writeString(logPath, "" + usedvolume + "," + maxvolume + "," + lastdate)
 }
 
 async function loadSite() {
@@ -147,7 +148,7 @@ async function loadSite() {
   
   let tx5 = widget.addText("aktuell")
      tx5.centerAlignText()
-     tx5.font = vlFnt
+     tx5.font = Font.semiboldSystemFont(8)
      tx5.textColor = Color.green()
     widget.addSpacer(spc)
  }
@@ -188,7 +189,7 @@ async function loadSite() {
   
   let tx7= widget.addText("letzte Aktualisierung: "+lastdate)
   tx7.textColor  = ptCol
-  tx7.font= Font.semiboldSystemFont(9)
+  tx7.font= Font.semiboldSystemFont(8)
   tx7.centerAlignText()
   
 }
