@@ -14,7 +14,7 @@ let nextRefresh = Date.now() + 1000*30 // add 30 second to now
 const spc = 3
 let hourNow = new Date().getHours()
 
-widget.setPadding(16, 16, 16, 16)
+widget.setPadding(10,10,10,10)
 widget.refreshAfterDate = new Date(nextRefresh)
 
 //Define nighttime (19h - 7h) for styling changes
