@@ -1,4 +1,4 @@
-//Get data usage status off 1&1 mobile
+//data usage status of 1&1 mobile
 //inspiered by "Corona-Ampel Berlin | www.berlin.de"
 //
 //author: sr45
@@ -22,9 +22,9 @@ var nightTime = (hourNow >= 19 || hourNow < 7)
 //Title text
 let titleTxt = widget.addText("1&1 Daten")
 titleTxt.font= Font.boldSystemFont(18)
-titleTxt.leftAlignText()
+titleTxt.centerAlignText()
 widget.addSpacer(spc)
-widget.addSpacer(spc)
+
 
 //Value text
 let vlFnt = Font.semiboldSystemFont(13)
@@ -45,8 +45,14 @@ if (nightTime) {
  widget.backgroundGradient = gradient
 }
 else {
- titleTxt.textColor = Color.darkGray()
- ptCol = Color.darkGray()
+ titleTxt.textColor = Color.white()
+ ptCol = Color.lightGray()
+const gradient = new LinearGradient()
+ gradient.locations = [0, 1]
+ gradient.colors = [
+   new Color("192331"),
+   new Color("222222")]
+ widget.backgroundGradient = gradient
 }
 await loadSite()
 if (!config.runsInWidget) {
@@ -67,13 +73,22 @@ function readData() {
    data = filecontent.split(",")
    usedvolume = data[0]
    maxvolume = data[1]
+   lastdate = data[2]
 }
 
 function writeData() {
+  var d = new Date,
+    dformat = [d.getMonth()+1,
+               d.getDate(),
+               d.getFullYear()].join('/')+' '+
+              [d.getHours(),
+               d.getMinutes(),
+               d.getSeconds()].join(':');
+              
    let logManager = FileManager.iCloud()
    const logPath = logManager.joinPath(logManager.documentsDirectory(), "1und1data.txt")
    logManager.downloadFileFromiCloud(logPath)
-   logManager.writeString(logPath, "" + usedvolume + "," + maxvolume)
+   logManager.writeString(logPath, "" + usedvolume + "," + maxvolume + "," + dformat)
 }
 
 async function loadSite() {
@@ -97,9 +112,13 @@ async function loadSite() {
  let res = await wbv.evaluateJavaScript(js)
  let wlan = JSON.parse(res)
 
-
  if (wlan[0]=="true") {
     readData()
+    let tx5 = widget.addText("!im WLAN kein update!")
+     tx5.centerAlignText()
+     tx5.font = Font.semiboldSystemFont(8)
+     tx5.textColor = Color.red()
+    widget.addSpacer(spc)
   } else {
     //javasript to grab data from the 1&1 website (mobile-center)
     let jsc = `
@@ -125,20 +144,20 @@ async function loadSite() {
    usedvolume = val[0].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
    maxvolume = val[1].replaceAll(" ", "").replaceAll("\n","").trim().replace("MB","")
    writeData()
- }
-
- if (wlan[0]=="true") {
-     let tx5 = widget.addText("Nicht aktuell im WLAN!")
+  
+  let tx5 = widget.addText("aktuell")
      tx5.centerAlignText()
      tx5.font = vlFnt
-     tx5.textColor = Color.red()
+     tx5.textColor = Color.green()
     widget.addSpacer(spc)
-  }
-   //Benutztes Volumen
-     tx2 = widget.addText(usedvolume + " MB")
-     tx2.leftAlignText()
-     tx2.font = vlFnt
-     tx2.textColor = ptCol
+ }
+
+ 
+//   Benutztes Volumen
+ tx2 = widget.addText(usedvolume + " MB")
+ tx2.leftAlignText()
+ tx2.font = vlFnt
+ tx2.textColor = ptCol
   
 
   let tx1 = widget.addText("Verbraucht")
@@ -164,4 +183,12 @@ async function loadSite() {
   tx3.textColor  = ptCol
   tx3.font= ptFnt
   tx3.leftAlignText()
+  
+  widget.addSpacer(spc)
+  
+  let tx7= widget.addText("letzte Aktualisierung: "+lastdate)
+  tx7.textColor  = ptCol
+  tx7.font= Font.semiboldSystemFont(9)
+  tx7.centerAlignText()
+  
 }
