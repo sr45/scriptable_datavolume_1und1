@@ -78,8 +78,8 @@ function readData() {
 }
 
 function writeData() {
-  var d = new Date,
-    lastdate = [d.getMonth()+1,
+  var d = new Date()
+lastdate = [d.getMonth()+1,
                d.getDate(),
                d.getFullYear()].join('/')+' '+
               [d.getHours(),
