@@ -1,11 +1,11 @@
-//data usage status of 1&1 mobile
+//Get data usage status off 1&1 mobile
 //inspiered by "Corona-Ampel Berlin | www.berlin.de"
 //
 //author: sr45
 
 var usedvolume = 0
 var maxvolume = 0
-var lastdate = ""
+var lastdate =""
 
 let cc1 = Color.white()
 let cc2 = Color.white()
@@ -14,7 +14,7 @@ let nextRefresh = Date.now() + 1000*30 // add 30 second to now
 const spc = 3
 let hourNow = new Date().getHours()
 
-widget.setPadding(10,10,10,10)
+widget.setPadding(5, 10, 10, 10)
 widget.refreshAfterDate = new Date(nextRefresh)
 
 //Define nighttime (19h - 7h) for styling changes
@@ -152,7 +152,9 @@ async function loadSite() {
      tx5.textColor = Color.green()
     widget.addSpacer(spc)
  }
+log(lastdate)
 
+  widget.addSpacer(spc)
  
 //   Benutztes Volumen
  tx2 = widget.addText(usedvolume + " MB")
@@ -185,6 +187,9 @@ async function loadSite() {
   tx3.font= ptFnt
   tx3.leftAlignText()
   
+  widget.addSpacer(spc)
+  
+  widget.addSpacer(spc)
   widget.addSpacer(spc)
   
   let tx7= widget.addText("letzte Aktualisierung: "+lastdate)
